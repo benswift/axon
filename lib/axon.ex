@@ -398,15 +398,17 @@ defmodule Axon do
   @doc type: :special
   def param(name, shape, opts \\ [])
       when is_binary(name) and (is_tuple(shape) or is_function(shape)) do
-    opts = Keyword.validate!(opts, initializer: :glorot_uniform, type: {:f, 32})
+    opts = Keyword.validate!(opts, initializer: :glorot_uniform, type: {:f, 32}, kind: :parameter)
     initializer = validate_initializer!(opts[:initializer])
     type = opts[:type] || {:f, 32}
+    kind = opts[:kind] || :parameter
 
     %Axon.Parameter{
       name: name,
       shape: shape,
       type: type,
-      initializer: initializer
+      initializer: initializer,
+      kind: kind
     }
   end
 
@@ -671,6 +673,7 @@ defmodule Axon do
   edges in namespace usage.
   """
   @doc type: :special
+  @deprecated "Use Axon.block/2 instead"
   def namespace(%Axon{} = axon, name) when is_binary(name) do
     layer(:namespace, [axon], name: name)
   end
@@ -1533,7 +1536,8 @@ defmodule Axon do
     key_state =
       param("key", fn _ -> {2} end,
         type: {:u, 32},
-        initializer: fn _, _ -> Nx.Random.key(seed) end
+        initializer: fn _, _ -> Nx.Random.key(seed) end,
+        kind: :state
       )
 
     layer(dropout, [x, key_state],
@@ -1839,8 +1843,8 @@ defmodule Axon do
     gamma = param("gamma", gamma_shape, initializer: opts[:gamma_initializer])
     beta = param("beta", beta_shape, initializer: opts[:beta_initializer])
 
-    mean = param("mean", mean_shape, initializer: :zeros)
-    var = param("var", var_shape, initializer: :ones)
+    mean = param("mean", mean_shape, initializer: :zeros, kind: :state)
+    var = param("var", var_shape, initializer: :ones, kind: :state)
 
     layer(
       norm,
@@ -2963,7 +2967,8 @@ defmodule Axon do
     key_state =
       param("key", fn _ -> {2} end,
         type: {:u, 32},
-        initializer: fn _, _ -> Nx.Random.key(seed) end
+        initializer: fn _, _ -> Nx.Random.key(seed) end,
+        kind: :state
       )
 
     name =
