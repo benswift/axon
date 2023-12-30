@@ -1565,7 +1565,7 @@ defmodule Axon.Loop do
     {max_epochs, opts} = Keyword.pop(opts, :epochs, 1)
     {max_iterations, opts} = Keyword.pop(opts, :iterations, -1)
     {jit_compile?, opts} = Keyword.pop(opts, :jit_compile?, true)
-    {strict?, jit_opts} = Keyword.pop(opts, :strict?, true)
+    {strict?, opts} = Keyword.pop(opts, :strict?, true)
     {force_garbage_collection?, jit_opts} = Keyword.pop(opts, :force_garbage_collection?, false)
     debug? = Keyword.get(jit_opts, :debug, false)
 
@@ -1654,7 +1654,14 @@ defmodule Axon.Loop do
                   end
 
                   {time, status_batch_fn_and_state} =
-                    :timer.tc(&run_epoch/6, [batch_fn, handler_fns, state, data, debug?, force_garbage_collection?])
+                    :timer.tc(&run_epoch/6, [
+                      batch_fn,
+                      handler_fns,
+                      state,
+                      data,
+                      debug?,
+                      force_garbage_collection?
+                    ])
 
                   if debug? do
                     Logger.debug("Axon.Loop finished running epoch in #{us_to_ms(time)} ms")
